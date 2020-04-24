@@ -97,12 +97,21 @@ int main(int argc, char **argv) {
   }
 
   int *array = malloc(sizeof(int) * array_size);
+  printf("params: %d %d %d\n", seed, array_size, pnum);
   GenerateArray(array, array_size, seed);
   int active_child_processes = 0;
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
+    
     int i;
+    int file_pipe[2]; 
+
+  if (pipe(file_pipe)<0){
+    return 1;
+  }
+
+  float part = (float)array_size / pnum;
   for ( i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
@@ -110,13 +119,24 @@ int main(int argc, char **argv) {
       active_child_processes += 1;
       if (child_pid == 0) {
         // child process
-
+        printf("Succesfull fork: %d %d\n ", i, getpid());
+        int arr_start = part * (float)i;
+        int arr_end = arr_start + part;
+        struct MinMax min_max_part = GetMinMax(array, arr_start, arr_end);
         // parallel somehow
 
         if (with_files) {
           // use files here
+            printf("READING \n");
+			FILE *fp = fopen("task2.txt", "w");
+			fprintf(fp, "%d %d", min_max_part.min, min_max_part.max);
+			fclose(fp);
         } else {
           // use pipe here
+            close(file_pipe[0]);
+            write(file_pipe[1], &min_max_part.min, sizeof(int));
+            write(file_pipe[1], &min_max_part.max, sizeof(int));
+            close(file_pipe[0]);
         }
         return 0;
       }
@@ -129,7 +149,7 @@ int main(int argc, char **argv) {
 
   while (active_child_processes > 0) {
     // your code here
-
+    wait(0);
     active_child_processes -= 1;
   }
 
@@ -143,8 +163,16 @@ int main(int argc, char **argv) {
 
     if (with_files) {
       // read from files
+			printf("WRITING \n");
+			FILE *fp = fopen("task2.txt", "r");
+			fscanf(fp, "%d %d", &min, &max);
+			fclose(fp);
     } else {
       // read from pipes
+      close(file_pipe[1]);
+      read(file_pipe[0], &min, sizeof(int));
+      read(file_pipe[0], &max, sizeof(int));
+      close(file_pipe[0]);
     }
 
     if (min < min_max.min) min_max.min = min;
