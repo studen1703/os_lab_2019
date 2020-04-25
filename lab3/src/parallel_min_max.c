@@ -103,15 +103,23 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
     
-    int i;
-    int file_pipe[2]; 
-
-  if (pipe(file_pipe)<0){
-    return 1;
-  }
+ int i;
+ int *file_pipe; 
 
   float part = (float)array_size / pnum;
+
+  int *pipe_array;
+  if (!with_files){
+    pipe_array = (int *)malloc(sizeof(int) * 2 * pnum);
+  }
+
   for ( i = 0; i < pnum; i++) {
+
+		if (!with_files)
+		{
+			file_pipe = pipe_array + (i * 2); //для каждого потока своя пара дескрипторов
+		}
+
     pid_t child_pid = fork();
     if (child_pid >= 0) {
       // successful fork
@@ -147,8 +155,6 @@ int main(int argc, char **argv) {
   }
 
   while (active_child_processes > 0) {
-    // your code here
-    wait(0);
     active_child_processes -= 1;
   }
 
@@ -166,12 +172,15 @@ int main(int argc, char **argv) {
 			FILE *fp = fopen("task2.txt", "r");
 			fscanf(fp, "%d %d", &min, &max);
 			fclose(fp);
+            printf("%s", "ffff");
     } else {
       // read from pipes
+      file_pipe = pipe_array + (i * 2);
       close(file_pipe[1]);
       read(file_pipe[0], &min, sizeof(int));
       read(file_pipe[0], &max, sizeof(int));
       close(file_pipe[0]);
+      printf("%s", "ffff");
     }
 
     if (min < min_max.min) min_max.min = min;
@@ -185,7 +194,8 @@ int main(int argc, char **argv) {
   elapsed_time += (finish_time.tv_usec - start_time.tv_usec) / 1000.0;
 
   free(array);
-
+  if (!with_files)
+		free(pipe_array);
   printf("Min: %d\n", min_max.min);
   printf("Max: %d\n", min_max.max);
   printf("Elapsed time: %fms\n", elapsed_time);
