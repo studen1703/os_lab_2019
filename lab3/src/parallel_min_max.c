@@ -97,7 +97,6 @@ int main(int argc, char **argv) {
   }
 
   int *array = malloc(sizeof(int) * array_size);
-  printf("params: %d %d %d\n", seed, array_size, pnum);
   GenerateArray(array, array_size, seed);
   int active_child_processes = 0;
 
@@ -136,7 +135,7 @@ int main(int argc, char **argv) {
             close(file_pipe[0]);
             write(file_pipe[1], &min_max_part.min, sizeof(int));
             write(file_pipe[1], &min_max_part.max, sizeof(int));
-            close(file_pipe[0]);
+            close(file_pipe[1]);
         }
         return 0;
       }

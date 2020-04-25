@@ -16,8 +16,8 @@ find_min_max.o : utils.h find_min_max.h
 	$(CC) -o find_min_max.o -c find_min_max.c $(CFLAGS)
 
 exec: sequential_min_max
-	$(CC) -o exec_task5 -c exec_task5.c
-	$(CC) exec_task5 -o task5
+	$(CC) -o exec_task5.o -c exec_task5.c
+	$(CC) exec_task5.o -o task5
 	./task5 
 
 clean :
