@@ -18,9 +18,12 @@
 #include <unistd.h>   //Для alarm
 #include <signal.h>   //Для signal
 
+int child_pid;
 void MyAlarm (int t)
 {     
-    printf("t = %d, aaaaaaaaaaaaaa\n", t);
+    printf("child_pid = %d, aaaaaaaaaaaaaa\n", child_pid);
+
+    kill(child_pid, SIGKILL);
 }
 
 int main(int argc, char **argv) {
@@ -29,7 +32,7 @@ int main(int argc, char **argv) {
   int pnum = -1;
   int timeout = -1;
   bool with_files = false;
-  signal (SIGALRM, MyAlarm);
+  signal(SIGALRM, MyAlarm);
 
   while (true) {
     int current_optind = optind ? optind : 1;
@@ -109,8 +112,7 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
     
- int i;
-
+  int i;
 
   int part = (float)array_size / pnum;
 
@@ -128,16 +130,12 @@ int main(int argc, char **argv) {
 			if(pipe(file_pipe) == -1)
 				exit(EXIT_FAILURE);
 		}
-    pid_t child_pid = fork();
+    child_pid = fork();
+    alarm(timeout);
     if (child_pid >= 0) {
-
-        printf("wp-%d\n",waitpid(child_pid, NULL, WNOHANG));
-    if(waitpid(child_pid, NULL, WNOHANG)==0)
-    {
-        MyAlarm(timeout);
-        kill(child_pid, SIGKILL);
-    }
       // successful fork
+      sleep(10);
+      printf("cp = %d\n", child_pid);
       active_child_processes += 1;
       if (child_pid == 0) {
         // child process
