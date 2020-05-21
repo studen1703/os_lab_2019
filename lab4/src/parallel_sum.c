@@ -29,7 +29,7 @@ int Sum(const struct SumArgs *args) {
   int i = 0;
   for(i = args->begin; i<args->end; i++)
     sum += args->array[i];
-  printf("d\n");
+  printf("d = %d\n",sum);
   return sum;
 }
 
@@ -117,14 +117,20 @@ int main(int argc, char **argv) {
 
   struct SumArgs args[threads_num];
   uint32_t i;
+  args->array = array;
+
   for ( i = 0; i < threads_num; i++) {
-    if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args)) {
+    args[i].begin = array_size*i/threads_num;
+    args[i].end =  array_size*(i+1)/threads_num;
+    if (pthread_create(&threads[i], NULL, ThreadSum, (void *)&args+i)) {
       printf("Error: pthread_create failed!\n");
       return 1;
     }
   }
 
   int total_sum = 0;
+  int *array_sum = malloc(sizeof(int) * threads_num); //массив для сумм потоков
+
   for ( i = 0; i < threads_num; i++) {
     int sum = 0;
     pthread_join(threads[i], (void **)&sum);
