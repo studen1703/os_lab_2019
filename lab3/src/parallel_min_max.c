@@ -124,16 +124,18 @@ int main(int argc, char **argv) {
     file_pipe = pipe_array + (i * 2); //для каждого потока своя пара дескрипторов
 		if(pipe(file_pipe) == -1)
 			exit(EXIT_FAILURE);
-		
-    child_pid = fork();
+	
     alarm(timeout);
+    child_pid = fork();
+    
     if (child_pid >= 0) {
       // successful fork
-      sleep(10);
+
       printf("cp = %d\n", child_pid);
       active_child_processes += 1;
       if (child_pid == 0) {
         // child process
+        sleep(10);
         printf("Succesfull fork: %d %d\n ", i, getpid());
         int arr_start = part * (float)i;
         int arr_end = arr_start + part;

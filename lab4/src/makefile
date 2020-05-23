@@ -4,7 +4,7 @@ CFLAGS=-I.
 all :  parallel_min_max t3 t5 t1
 
 t1: 
-	$(CC) /projects/os_lab_2019/lab3/src/parallel_min_max.c /projects/os_lab_2019/lab3/src/find_min_max.c utils.c -o task1 $(CFLAGS)
+	$(CC) ../../lab3/src/parallel_min_max.c /projects/os_lab_2019/lab3/src/find_min_max.c utils.c -o task1 $(CFLAGS)
 	./task1 --seed 1 --array_size 2000 --pnum 100 --timeout 1
 
 t5 : utils.o sumlib.o 
