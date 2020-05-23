@@ -21,8 +21,7 @@
 int child_pid;
 void MyAlarm (int t)
 {     
-    printf("child_pid = %d, aaaaaaaaaaaaaa\n", child_pid);
-
+    printf("child_pid = %d, killed\n", child_pid);
     kill(child_pid, SIGKILL);
 }
 
@@ -31,7 +30,6 @@ int main(int argc, char **argv) {
   int array_size = -1;
   int pnum = -1;
   int timeout = -1;
-  bool with_files = false;
   signal(SIGALRM, MyAlarm);
 
   while (true) {
@@ -118,18 +116,15 @@ int main(int argc, char **argv) {
 
   int *pipe_array;
   int *file_pipe; 
-  if (!with_files){
-    pipe_array = (int *)malloc(sizeof(int) * 2 * pnum);
-  }
+ 
+  pipe_array = (int *)malloc(sizeof(int) * 2 * pnum);
+
 
   for ( i = 0; i < pnum; i++) {
-
-		if (!with_files)
-		{
-			file_pipe = pipe_array + (i * 2); //для каждого потока своя пара дескрипторов
-			if(pipe(file_pipe) == -1)
-				exit(EXIT_FAILURE);
-		}
+    file_pipe = pipe_array + (i * 2); //для каждого потока своя пара дескрипторов
+		if(pipe(file_pipe) == -1)
+			exit(EXIT_FAILURE);
+		
     child_pid = fork();
     alarm(timeout);
     if (child_pid >= 0) {
@@ -143,21 +138,13 @@ int main(int argc, char **argv) {
         int arr_start = part * (float)i;
         int arr_end = arr_start + part;
         struct MinMax min_max_part = GetMinMax(array, arr_start, arr_end);
-        // parallel somehow
 
-        if (with_files) {
-          // use files here
-            printf("READING \n");
-	    FILE *fp = fopen("task2.txt", "w");
-	    fprintf(fp, "%d %d", min_max_part.min, min_max_part.max);
-	    fclose(fp);
-        } else {
-          // use pipe here
-            close(file_pipe[0]);
-            write(file_pipe[1], &min_max_part.min, sizeof(min_max_part.min));
-            write(file_pipe[1], &min_max_part.max, sizeof(min_max_part.max));
-            close(file_pipe[1]);
-        }
+        // use pipe here
+        close(file_pipe[0]);
+        write(file_pipe[1], &min_max_part.min, sizeof(min_max_part.min));
+        write(file_pipe[1], &min_max_part.max, sizeof(min_max_part.max));
+        close(file_pipe[1]);
+
         return 0;
       }
 
@@ -177,21 +164,12 @@ int main(int argc, char **argv) {
 
   for ( i = 0; i < pnum; i++) {
     int min, max;
-
-    if (with_files) {
-      // read from files
-            printf("WRITING \n");
-            FILE *fp = fopen("task2.txt", "r");
-            fscanf(fp, "%d %d", &min, &max);
-            fclose(fp);
-    } else {
-      // read from pipes
-      file_pipe = pipe_array + (i * 2);
-      close(file_pipe[1]);
-      read(file_pipe[0], &min, sizeof(min));
-      read(file_pipe[0], &max, sizeof(max));
-      close(file_pipe[0]);
-    }
+    //read from pipes
+    file_pipe = pipe_array + (i * 2);
+    close(file_pipe[1]);
+    read(file_pipe[0], &min, sizeof(min));
+    read(file_pipe[0], &max, sizeof(max));
+    close(file_pipe[0]);
 
     if (min < min_max.min) min_max.min = min;
     if (max > min_max.max) min_max.max = max;
@@ -204,8 +182,6 @@ int main(int argc, char **argv) {
   elapsed_time += (finish_time.tv_usec - start_time.tv_usec) / 1000.0;
 
   free(array);
-  if (!with_files)
-		free(pipe_array);
   printf("Min: %d\n", min_max.min);
   printf("Max: %d\n", min_max.max);
   printf("Elapsed time: %fms\n", elapsed_time);

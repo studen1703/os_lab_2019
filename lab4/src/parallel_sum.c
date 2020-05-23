@@ -16,24 +16,8 @@
 
 #include <getopt.h>
 #include <pthread.h>
-#include "utils.h"//"/projects/os_lab_2019/lab3/src/utils.h"
+#include "utils.h"
 
-/*struct SumArgs {
-  int *array;
-  int begin;
-  int end;
-};
-
-int Sum(const struct SumArgs *args) {
-  int sum = 0;
-  // TODO: your code here 
-  int i = 0;
-  for(i = args->begin; i<args->end; i++)
-    sum += args->array[i];
-  printf("d = %d\n",sum);
-  return sum;
-}
-*/
 void *ThreadSum(void *args) {
   struct SumArgs *sum_args = (struct SumArgs *)args;
   int sum = Sum(sum_args);
@@ -58,7 +42,7 @@ int main(int argc, char **argv) {
 
     static struct option options[] = {{"seed", required_argument, 0, 0},
                                       {"array_size", required_argument, 0, 0},
-                                      {"threads_num", required_argument, 0, 0},
+                                      {"threads_num", required_argument, 0, 't'},
                                       {0, 0, 0, 0}};
 
     int option_index = 0;
@@ -135,7 +119,6 @@ int main(int argc, char **argv) {
   int total_sum = 0;
 
   for ( i = 0; i < threads_num; i++) {
-    //pthread_join(threads[i], (void **)&sum);
     pthread_join(threads[i], NULL);
     total_sum += array_sum[i];
   }
