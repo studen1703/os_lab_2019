@@ -10,17 +10,10 @@
 #include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
+#include "lib.h"
 #include <pthread.h>
 int globalResult = 1;
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
-
-struct FactorialArgs {
-  uint64_t begin;
-  uint64_t end;
-  uint64_t mod;
-};
-
 uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
   uint64_t result = 0;
   a = a % mod;
@@ -32,21 +25,6 @@ uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
   }
 
   return result % mod;
-}
-
-uint64_t Factorial(const struct FactorialArgs *args) {
-    uint64_t ans = 1;
-    printf("beginF: %d\n", args->begin);
-    printf("endF: %d\n", args->end);
-    printf("modF: %d\n", args->mod);
-  // TODO: your code here
-    int i;
-    for (i = args->begin; i < args->end; i++) {
-        ans *= i;
-        ans %= args->mod;
-    }
-    printf("ans: %d\n", ans);
-  return ans;
 }
 
 void *ThreadFactorial(void *args) {
@@ -192,6 +170,7 @@ int main(int argc, char **argv) {
 
       char buffer[sizeof(globalResult)];
       memcpy(buffer, &globalResult, sizeof(globalResult));
+      printf("server send: %d\n", globalResult);
       err = send(client_fd, buffer, sizeof(globalResult), 0);
       if (err < 0) {
         fprintf(stderr, "Can't send data to client\n");

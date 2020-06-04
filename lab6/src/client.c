@@ -12,10 +12,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-struct Server {
-  char ip[255];
-  int port;
-};
+#include "lib.h"
 
 uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
   uint64_t result = 0;
@@ -30,20 +27,6 @@ uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
   return result % mod;
 }
 
-bool ConvertStringToUI64(const char *str, uint64_t *val) {
-  char *end = NULL;
-  unsigned long long i = strtoull(str, &end, 10);
-  if (errno == ERANGE) {
-    fprintf(stderr, "Out of uint64_t range: %s\n", str);
-    return false;
-  }
-
-  if (errno != 0)
-    return false;
-
-  *val = i;
-  return true;
-}
 
 int main(int argc, char **argv) {
   uint64_t k = -1;
