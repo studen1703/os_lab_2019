@@ -100,13 +100,26 @@ int main(int argc, char **argv) {
 
   // TODO: for one server here, rewrite with servers from file
   unsigned int servers_num = 1;
+    FILE *fp;
+    if((fp=fopen("srv.txt", "r"))==NULL) {
+    printf ("Cannot open file.\n");
+    exit(1);
+    }
+    fscanf(fp, "%d", &servers_num);
+
   struct Server *to = malloc(sizeof(struct Server) * servers_num);
   // TODO: delete this and parallel work between servers
-  to[0].port = 20001;
-  memcpy(to[0].ip, "127.0.0.1", sizeof("127.0.0.1"));
+  int i;
+  uint64_t superAnswer = 1;
+  for(i = 0; i< servers_num; i++)
+  {
+    fscanf(fp, "%d", &to[i].port);
+    //to[i].port = 20001;
+    memcpy(to[i].ip, "127.0.0.1", sizeof("127.0.0.1"));
+  }
 
   // TODO: work continiously, rewrite to make parallel
-  for (int i = 0; i < servers_num; i++) {
+  for ( i = 0; i < servers_num; i++) {
     struct hostent *hostname = gethostbyname(to[i].ip);
     if (hostname == NULL) {
       fprintf(stderr, "gethostbyname failed with %s\n", to[i].ip);
@@ -131,8 +144,8 @@ int main(int argc, char **argv) {
 
     // TODO: for one server
     // parallel between servers
-    uint64_t begin = 1;
-    uint64_t end = k;
+    uint64_t begin = 1 + k*i/servers_num;
+    uint64_t end = 1 + k*(i+1)/servers_num;
 
     char task[sizeof(uint64_t) * 3];
     memcpy(task, &begin, sizeof(uint64_t));
@@ -153,11 +166,15 @@ int main(int argc, char **argv) {
     // TODO: from one server
     // unite results
     uint64_t answer = 0;
+
     memcpy(&answer, response, sizeof(uint64_t));
     printf("answer: %llu\n", answer);
+    superAnswer *= answer;
+    superAnswer %= mod; 
 
     close(sck);
   }
+  printf("Full answer: %llu\n", superAnswer);
   free(to);
 
   return 0;

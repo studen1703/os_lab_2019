@@ -11,7 +11,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "pthread.h"
+#include <pthread.h>
+int globalResult = 1;
+pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 struct FactorialArgs {
   uint64_t begin;
@@ -33,16 +35,29 @@ uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
 }
 
 uint64_t Factorial(const struct FactorialArgs *args) {
-  uint64_t ans = 1;
-
+    uint64_t ans = 1;
+    printf("beginF: %d\n", args->begin);
+    printf("endF: %d\n", args->end);
+    printf("modF: %d\n", args->mod);
   // TODO: your code here
-
+    int i;
+    for (i = args->begin; i < args->end; i++) {
+        ans *= i;
+        ans %= args->mod;
+    }
+    printf("ans: %d\n", ans);
   return ans;
 }
 
 void *ThreadFactorial(void *args) {
-  struct FactorialArgs *fargs = (struct FactorialArgs *)args;
-  return (void *)(uint64_t *)Factorial(fargs);
+    struct FactorialArgs *fargs = (struct FactorialArgs *)args;
+    usleep(10);
+    pthread_mutex_lock(&mut);
+    usleep(10);
+    globalResult *= Factorial(fargs);
+    globalResult %= fargs->mod;
+    pthread_mutex_unlock(&mut);
+    return NULL;
 }
 
 int main(int argc, char **argv) {
@@ -145,9 +160,9 @@ int main(int argc, char **argv) {
         break;
       }
 
-      pthread_t threads[tnum];
+      pthread_t *threads = (pthread_t*)malloc(sizeof(pthread_t) * tnum);
 
-      uint64_t begin = 0;
+      uint64_t begin = 1;
       uint64_t end = 0;
       uint64_t mod = 0;
       memcpy(&begin, from_client, sizeof(uint64_t));
@@ -156,11 +171,13 @@ int main(int argc, char **argv) {
 
       fprintf(stdout, "Receive: %llu %llu %llu\n", begin, end, mod);
 
-      struct FactorialArgs args[tnum];
-      for (uint32_t i = 0; i < tnum; i++) {
+      struct FactorialArgs *args = (struct FactorialArgs*)malloc(sizeof(struct FactorialArgs) * tnum);
+      uint32_t i;
+      
+      for ( i = 0; i < tnum; i++) {
         // TODO: parallel somehow
-        args[i].begin = 1;
-        args[i].end = 1;
+        args[i].begin = begin + (end - begin)*i/tnum;
+        args[i].end = begin + (end - begin)*(i+1)/tnum;
         args[i].mod = mod;
 
         if (pthread_create(&threads[i], NULL, ThreadFactorial,
@@ -169,27 +186,25 @@ int main(int argc, char **argv) {
           return 1;
         }
       }
-
-      uint64_t total = 1;
-      for (uint32_t i = 0; i < tnum; i++) {
-        uint64_t result = 0;
-        pthread_join(threads[i], (void **)&result);
-        total = MultModulo(total, result, mod);
+      for ( i = 0; i < tnum; i++) {
+        pthread_join(threads[i], NULL);
       }
 
-      printf("Total: %llu\n", total);
-
-      char buffer[sizeof(total)];
-      memcpy(buffer, &total, sizeof(total));
-      err = send(client_fd, buffer, sizeof(total), 0);
+      char buffer[sizeof(globalResult)];
+      memcpy(buffer, &globalResult, sizeof(globalResult));
+      err = send(client_fd, buffer, sizeof(globalResult), 0);
       if (err < 0) {
         fprintf(stderr, "Can't send data to client\n");
         break;
       }
+      
+    free(threads);
+    free(args);
     }
 
     shutdown(client_fd, SHUT_RDWR);
     close(client_fd);
+    
   }
 
   return 0;
