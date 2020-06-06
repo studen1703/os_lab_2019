@@ -96,12 +96,14 @@ int main(int argc, char **argv) {
   uint64_t superAnswer = 1;
   for(i = 0; i< servers_num; i++)
   {
-    fscanf(fp, "%d", &to[i].port);
+    fscanf(fp, "%d:%s", &to[i].port, to[i].ip);
     //to[i].port = 20001;
-    memcpy(to[i].ip, "127.0.0.1", sizeof("127.0.0.1"));
+    //memcpy(to[i].ip, "127.0.0.1", sizeof("127.0.0.1"));
   }
 
   // TODO: work continiously, rewrite to make parallel
+  #pragma omp parallel num_threads(servers_num) 
+  {
   for ( i = 0; i < servers_num; i++) {
     struct hostent *hostname = gethostbyname(to[i].ip);
     if (hostname == NULL) {
@@ -157,6 +159,7 @@ int main(int argc, char **argv) {
 
     close(sck);
   }
+}
   printf("Full answer: %llu\n", superAnswer);
   free(to);
 

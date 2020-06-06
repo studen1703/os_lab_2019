@@ -7,7 +7,7 @@ s : lib.o
 	$(CC) -lpthread lib.c server.c -o s $(CFLAGS)
 
 c : lib.o
-	$(CC) client.c lib.c -o c $(CFLAGS)
+	$(CC) -fopenmp client.c lib.c -o c $(CFLAGS)
 
 lib.o : lib.h
 	$(CC) -c lib.c -o lib.o $(CFLAGS)

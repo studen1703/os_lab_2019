@@ -29,10 +29,9 @@ uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
 
 void *ThreadFactorial(void *args) {
     struct FactorialArgs *fargs = (struct FactorialArgs *)args;
-    usleep(10);
+    uint64_t f = Factorial(fargs);
     pthread_mutex_lock(&mut);
-    usleep(10);
-    globalResult *= Factorial(fargs);
+    globalResult *= f;
     globalResult %= fargs->mod;
     pthread_mutex_unlock(&mut);
     return NULL;
@@ -103,20 +102,21 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Can not bind to socket!");
     return 1;
   }
-
+  printf("!!!!!!!!!!!!before %d\n", __LINE__);
   err = listen(server_fd, 128);
   if (err < 0) {
     fprintf(stderr, "Could not listen on socket\n");
     return 1;
   }
-
+  printf("!!!!!!!!!!!!!after %d\n", __LINE__);
   printf("Server listening at %d\n", port);
 
   while (true) {
     struct sockaddr_in client;
     socklen_t client_len = sizeof(client);
+    printf("!!!!!!!!!!!!! %d\n", __LINE__);
     int client_fd = accept(server_fd, (struct sockaddr *)&client, &client_len);
-
+    printf("!!!!!!!!!!!!! %d\n", __LINE__);
     if (client_fd < 0) {
       fprintf(stderr, "Could not establish new connection\n");
       continue;
