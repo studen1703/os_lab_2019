@@ -4,34 +4,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
 #include <getopt.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <stdio.h>
-//#define BUFSIZE 100
+#include <stdbool.h>
+
 #define SADDR struct sockaddr
 #define SIZE sizeof(struct sockaddr_in)
 
 int main(int argc, char *argv[]) {
-    char *adr; 
+    char *adr = NULL; 
     int port = -1;
     int bufsize = -1;
-      while (true) {
+    while (true) {
     int current_optind = optind ? optind : 1;
 
     static struct option options[] = {{"adr", required_argument, 0, 0},
@@ -72,7 +57,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (adr == NULL || port == -1 || bufsize == -1) {
-    fprintf(stderr, "Using: %s --adr 127.0.0.1 --port 20001 --bufsize 4\n", argv[0]);
+    fprintf(stderr, "Using: %s --adr 127.0.0.1 --port 1234 --buff 100\n", argv[0]);
     return 1;
   }
 
@@ -113,8 +98,8 @@ int main(int argc, char *argv[]) {
     }
   }
 
-    free(adr);
-    free(buf);
+  free(adr);
+  free(buf);
   close(fd);
   exit(0);
 }

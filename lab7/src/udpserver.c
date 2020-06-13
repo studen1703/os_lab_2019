@@ -1,3 +1,4 @@
+  
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -7,26 +8,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include <getopt.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <pthread.h>
-//#define SERV_PORT 20001
-//#define BUFSIZE 1024
+
 #define SADDR struct sockaddr
 #define SLEN sizeof(struct sockaddr_in)
 
 int main(int argc, char **argv) {
-int bufsize = -1;
+  int bufsize = -1;
   int port = -1;
 
   while (true) {
@@ -67,7 +56,7 @@ int bufsize = -1;
   }
 
   if (port == -1 || bufsize == -1) {
-    fprintf(stderr, "Using: %s --port 20001 --tnum 4\n", argv[0]);
+    fprintf(stderr, "Using: %s --port 1234 --bufsize 100\n", argv[0]);
     return 1;
   }
 

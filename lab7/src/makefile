@@ -1,7 +1,10 @@
 CC=gcc
 CFLAGS=-I.
 
-all :  tcpS tcpC udpS udpC
+all :  tcp
+
+tcp: tcpS tcpC 
+udp: udpS udpC
 
 tcpS : 
 	$(CC) tcpserver.c -o tcpS $(CFLAGS)

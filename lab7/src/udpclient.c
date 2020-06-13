@@ -1,6 +1,8 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <getopt.h>
 
 #include <arpa/inet.h>
 #include <string.h>
@@ -8,35 +10,15 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
-#include <errno.h>
-#include <getopt.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-//#define SERV_PORT 20001
-//#define BUFSIZE 1024
 #define SADDR struct sockaddr
 #define SLEN sizeof(struct sockaddr_in)
 
 int main(int argc, char **argv) {
-    char *adr; 
+    char *adr = NULL; 
     int port = -1;
     int bufsize = -1;
-      while (true) {
+    while (true) {
     int current_optind = optind ? optind : 1;
 
     static struct option options[] = {{"adr", required_argument, 0, 0},
@@ -76,28 +58,26 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (port == -1 || bufsize == -1) {
-    fprintf(stderr, "Using: %s --port 20001 --bufsize 4\n", &adr);
+  if (adr == NULL || port == -1 || bufsize == -1) {
+    fprintf(stderr, "Using: %s --adr 127.0.0.1 --port 1234 --bufsize 100\n", &adr);
     return 1;
   }
   int sockfd, n;
-  char sendline[bufsize], recvline[bufsize + 1];
+  char *sendline = (char*)malloc(sizeof(char) * bufsize);
+  char *recvline = (char*)malloc(sizeof(char) * (bufsize+1));
   struct sockaddr_in servaddr;
   struct sockaddr_in cliaddr;
-
-  if (argc != 2) {
-    printf("usage: client <IPaddress of server>\n");
-    exit(1);
-  }
 
   memset(&servaddr, 0, sizeof(servaddr));
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(port);
 
-  if (inet_pton(AF_INET, port, &servaddr.sin_addr) < 0) {
+  if (inet_pton(AF_INET, adr, &servaddr.sin_addr) < 0) {
     perror("inet_pton problem");
+    free(adr);
     exit(1);
   }
+  free(adr);
   if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     perror("socket problem");
     exit(1);
@@ -119,4 +99,6 @@ int main(int argc, char **argv) {
     printf("REPLY FROM SERVER= %s\n", recvline);
   }
   close(sockfd);
+  free(sendline);
+  free(recvline);
 }

@@ -2,27 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include <getopt.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <pthread.h>
+#include <unistd.h>
 
-//#define SERV_PORT 10050
-//#define BUFSIZE 100
 #define SADDR struct sockaddr
 
 int main(int argc, char **argv) {
@@ -111,15 +96,13 @@ int main(int argc, char **argv) {
 
     while ((nread = read(cfd, buf, bufsize)) > 0) {
         buf[nread] = '\0';
-      //write(1, &buf, nread);
-    printf("%s", buf);
+        printf("%s", buf);
     }
 
     if (nread == -1) {
       perror("read");
       exit(1);
     }
-    
     close(cfd);
   }
   free(buf);
